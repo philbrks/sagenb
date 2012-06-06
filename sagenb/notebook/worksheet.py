@@ -131,7 +131,7 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
     """
     INPUT:
 
-        - ``obj`` -- a dictionary (a basic Python objet) from which a
+        - ``obj`` -- a dictionary (a basic Python object) from which a
                      worksheet can be reconstructed.
 
         - ``notebook_worksheet_directory`` - string; the directory in
@@ -160,7 +160,8 @@ class Worksheet(object):
     def __init__(self, name=None, id_number=None,
                  notebook_worksheet_directory=None, system=None,
                  owner=None, pretty_print=False,
-                 auto_publish=False, create_directories=True):
+                 auto_publish=False, create_directories=True,
+                 link_name=None):
         ur"""
         Create and initialize a new worksheet.
 
@@ -188,7 +189,12 @@ class Worksheet(object):
         - ``create_directories`` -- bool (default: True): if True,
           creates various files and directories where data will be
           stored.  This option is here only for the
-          migrate_old_notebook method in notebook.py
+          migrate_old_notebook method in notebook.pyi
+
+        - ``link_name`` -- string (default: None): specifies an
+          alternative URL pathname for this worksheet. For instance,
+          with link_name = 'banana', the url SAGENB_ROOT/admin/banana
+          would redirect to this worksheet
 
         EXAMPLES: We test the constructor via an indirect doctest::
 
@@ -231,6 +237,38 @@ class Worksheet(object):
             self.create_directories()
         self.clear()
 
+        # set the link_name attribute for links between worksheets.
+        self.__link_name = link_name
+
+    def link_name(self):
+        try:
+            return self.__link_name
+        except AttributeError:
+            self.__link_name = gettext("None")
+            return self.__link_name     
+        
+    def set_link_name(self, link_name):
+        """
+        Set the name of this worksheet.
+
+        INPUT:
+
+        -  ``name`` - string
+
+        EXAMPLES: We create a worksheet and change the name::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
+            sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
+            sage: W.set_link_name('ch1')
+            sage: W.link_name()
+            u'ch1'
+        """
+        if len(link_name.strip()) == 0:
+            link_name = None
+        link_name = unicode_str(link_name)
+        self.__link_name = link_name   
+        
+        
     def increase_state_number(self):
         if self.is_published() or self.docbrowser():
             return
@@ -359,6 +397,8 @@ class Worksheet(object):
              # and by whom:
              #     last_change = ('username', time.time())
              'last_change': self.last_change(),
+             # 
+             'link_name': self.link_name(),
              }
         return d
 

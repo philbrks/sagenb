@@ -20,6 +20,7 @@ def worksheet_view(f):
     @login_required
     @wraps(f)
     def wrapper(username, id, **kwds):
+        print "id is", id
         worksheet_filename = username + "/" + id
         try:
             worksheet = kwds['worksheet'] = g.notebook.get_worksheet_with_filename(worksheet_filename)
@@ -134,6 +135,11 @@ def worksheet_command(target, **route_kwds):
         return wrapper
     return decorator
     
+
+@worksheet_command('link_name')
+def worksheet_link_name(worksheet):
+    worksheet.set_link_name(request.values['link_name'])
+
 
 @worksheet_command('rename')
 def worksheet_rename(worksheet):
